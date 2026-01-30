@@ -9,7 +9,6 @@ import { usePathname } from 'next/navigation';
 import { usePlayer } from '@/hooks/usePlayer';
 
 import { useMemo } from 'react';
-import { HiHome } from 'react-icons/hi';
 import { BiSearch } from 'react-icons/bi';
 import { MdPlaylistPlay, MdRequestQuote } from 'react-icons/md';
 
@@ -36,7 +35,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ children, songs }) => {
   const routes = useMemo(
     () => [
       {
-        icon: HiHome,
+        iconNode: (
+          <Image
+            src="/images/mnky-muzik-app-icon.png"
+            alt=""
+            width={40}
+            height={40}
+            className="object-contain shrink-0"
+          />
+        ),
         label: 'Home',
         active: pathname === '/',
         href: '/',
@@ -78,15 +85,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ children, songs }) => {
       <div className="hidden md:flex flex-col gap-y-2 bg-black h-full w-[300px] p-2">
         <Box>
           <div className="flex flex-col gap-y-4 px-5 py-4">
-            <Link href="/" className="flex items-center gap-x-2 mb-2" aria-label="MNKY MUZIK Home">
-              <Image
-                src="/images/mnky-muzik-app-icon.png"
-                alt=""
-                width={40}
-                height={40}
-                className="object-contain"
-              />
-            </Link>
             {routes.map((item) => (
               <SidebarItem key={item.label} {...item} />
             ))}

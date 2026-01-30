@@ -4,14 +4,16 @@ import { twMerge } from 'tailwind-merge';
 
 //* Declaring the type for the SidebarItem component's properties
 interface SidebarItemProps {
-  icon: IconType;
+  icon?: IconType;
+  /** Custom node (e.g. app icon image) used instead of icon when provided */
+  iconNode?: React.ReactNode;
   label: string;
   active?: boolean;
   href: string;
 }
 
 //* SidebarItem component using React Function Component with SidebarItemProps
-export const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, active, href }) => {
+export const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, iconNode, label, active, href }) => {
   //* The component includes a Link component, which is used for navigation
   return (
     <Link
@@ -37,7 +39,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, act
         active && 'text-white'
       )}
     >
-      <Icon size={26} />
+      <span className="w-10 shrink-0 flex items-center">
+        {iconNode ?? (Icon != null && <Icon size={26} />)}
+      </span>
       <p className="truncate w-100">{label}</p>
     </Link>
   );

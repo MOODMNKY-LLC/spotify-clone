@@ -12,7 +12,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { RxCaretLeft } from 'react-icons/rx';
 import { RxCaretRight } from 'react-icons/rx';
-import { HiHome } from 'react-icons/hi';
 import { BiSearch } from 'react-icons/bi';
 
 import { useRouter } from 'next/navigation';
@@ -111,7 +110,11 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
           </button>
         </div>
         <div className="flex md:hidden gap-x-2 items-center">
-          <Link href="/" className="flex items-center shrink-0" aria-label="MNKY MUZIK Home">
+          <Link
+            href="/"
+            className="flex items-center shrink-0 min-w-[44px] min-h-[44px] rounded-full p-2 bg-white justify-center hover:opacity-75 transition"
+            aria-label="MNKY MUZIK Home"
+          >
             <Image
               src="/images/mnky-muzik-app-icon.png"
               alt=""
@@ -120,12 +123,6 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
               className="object-contain"
             />
           </Link>
-          <button
-            onClick={() => router.push('/')}
-            className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75 transition min-w-[44px] min-h-[44px]"
-          >
-            <HiHome className="text-black" size={20} />
-          </button>
           <button
             onClick={() => router.push('/search')}
             className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75 transition min-w-[44px] min-h-[44px]"
