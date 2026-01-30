@@ -86,12 +86,21 @@ export function PWAInstallBanner() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-white">Install MNKY MUZIK</p>
-          <p className="text-sm text-neutral-400">Add to your home screen for a better experience.</p>
+          <p className="text-sm text-neutral-400">
+            {deferredPrompt
+              ? 'Click Install to see the browser’s install prompt and add the app.'
+              : 'Add to your home screen for a better experience.'}
+          </p>
         </div>
       </div>
       {isIOS && (
         <p className="mt-2 text-xs text-neutral-500">
           Tap Share, then &quot;Add to Home Screen&quot;
+        </p>
+      )}
+      {!deferredPrompt && !isIOS && (
+        <p className="mt-2 text-xs text-neutral-500">
+          Or use your browser menu (⋮) → &quot;Install MNKY MUZIK&quot; or &quot;Install app&quot;
         </p>
       )}
       <div className="mt-4 flex gap-2">

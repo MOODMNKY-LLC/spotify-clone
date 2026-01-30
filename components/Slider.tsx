@@ -5,9 +5,20 @@ import * as RadixSlider from '@radix-ui/react-slider';
 interface SliderProps {
   value?: number;
   onChange?: (value: number) => void;
+  /** Step for discrete values (e.g. 0.001 for progress scrubbing). Default 0.1 */
+  step?: number;
+  /** Called when user commits the value (e.g. on pointer up after drag). */
+  onValueChangeCommit?: (value: number) => void;
+  ariaLabel?: string;
 }
 
-export const Slider: React.FC<SliderProps> = ({ value = 1, onChange }) => {
+export const Slider: React.FC<SliderProps> = ({
+  value = 1,
+  onChange,
+  step = 0.1,
+  onValueChangeCommit,
+  ariaLabel = 'Volume',
+}) => {
   const handleChange = (newValue: number[]) => {
     onChange?.(newValue[0]);
   };
@@ -25,9 +36,10 @@ export const Slider: React.FC<SliderProps> = ({ value = 1, onChange }) => {
       defaultValue={[1]}
       value={[value]}
       onValueChange={handleChange}
+      onValueCommit={onValueChangeCommit ? (v) => onValueChangeCommit(v[0]) : undefined}
       max={1}
-      step={0.1}
-      aria-label="Volume"
+      step={step}
+      aria-label={ariaLabel}
     >
       <RadixSlider.Track
         className="

@@ -21,10 +21,18 @@ interface PlayerContentProps {
   songUrl: string;
 }
 
+function formatTime(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
 export const PlayerContent: React.FC<PlayerContentProps> = ({ track, songUrl }) => {
   const player = usePlayer();
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   const Icon = isPlaying ? BsPauseFill : BsPlayFill;
   const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
@@ -58,7 +66,7 @@ export const PlayerContent: React.FC<PlayerContentProps> = ({ track, songUrl }) 
     player.setId(order[prevIndex]);
   };
 
-  const [play, { pause, sound }] = useSound(songUrl, {
+  const [play, { pause, sound, duration }] = useSound(songUrl, {
     volume: volume,
     onplay: () => setIsPlaying(true),
     onend: () => {
@@ -88,6 +96,37 @@ export const PlayerContent: React.FC<PlayerContentProps> = ({ track, songUrl }) 
     };
   }, [sound]);
 
+  //* Sync current time from sound while playing (skip while user is scrubbing)
+  useEffect(() => {
+    if (!sound || !isPlaying || isScrubbing) return;
+    const tick = () => {
+      const pos = typeof (sound as { seek: (s?: number) => number }).seek === 'function'
+        ? (sound as { seek: (s?: number) => number }).seek()
+        : null;
+      const sec = typeof pos === 'number' && !Number.isNaN(pos) ? pos : 0;
+      setCurrentTime(sec);
+    };
+    tick();
+    const interval = setInterval(tick, 250);
+    return () => clearInterval(interval);
+  }, [sound, isPlaying, isScrubbing]);
+
+  //* Reset current time when track changes
+  useEffect(() => {
+    setCurrentTime(0);
+  }, [songUrl]);
+
+  const progress = duration && duration > 0 ? currentTime / duration : 0;
+
+  const handleProgressChange = (value: number) => {
+    if (!sound || !duration) return;
+    const sec = value * duration;
+    setCurrentTime(sec);
+    if (typeof (sound as { seek: (s?: number) => number }).seek === 'function') {
+      (sound as { seek: (s: number) => number }).seek(sec);
+    }
+  };
+
   const handlePlay = () => {
     if (!isPlaying) {
       play();
@@ -105,14 +144,37 @@ export const PlayerContent: React.FC<PlayerContentProps> = ({ track, songUrl }) 
   };
 
   return (
-    <div
-      className="
+    <div className="flex flex-col gap-1 w-full">
+      {/* Progress bar: current time, scrubable slider, duration */}
+      <div className="flex items-center gap-3 w-full min-w-0">
+        <span className="w-10 shrink-0 text-right text-xs text-neutral-400 tabular-nums">
+          {formatTime(currentTime)}
+        </span>
+        <div className="flex-1 min-w-0">
+          <Slider
+            value={progress}
+            onChange={(v) => {
+              setIsScrubbing(true);
+              handleProgressChange(v);
+            }}
+            onValueChangeCommit={() => setIsScrubbing(false)}
+            step={0.001}
+            ariaLabel="Track progress"
+          />
+        </div>
+        <span className="w-10 shrink-0 text-xs text-neutral-400 tabular-nums">
+          {duration != null ? formatTime(duration) : '0:00'}
+        </span>
+      </div>
+
+      <div
+        className="
         grid
         grid-cols-2
         md:grid-cols-3
         h-full
         "
-    >
+      >
       <div
         className="
             flex
@@ -229,6 +291,7 @@ export const PlayerContent: React.FC<PlayerContentProps> = ({ track, songUrl }) 
           <Slider value={volume} onChange={(value) => setVolume(value)} />
         </div>
       </div>
+    </div>
     </div>
   );
 };
