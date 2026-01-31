@@ -44,6 +44,15 @@ export async function GET(request: Request) {
       }
       return NextResponse.redirect(`${base}${next}`)
     }
+    // exchangeCodeForSession failed (e.g. expired code, PKCE mismatch); forward error so user sees real message
+    if (error) {
+      const errorSearch = new URLSearchParams()
+      errorSearch.set('error', error.message)
+      if ('code' in error && typeof (error as { code?: string }).code === 'string') {
+        errorSearch.set('error_code', (error as { code: string }).code)
+      }
+      return NextResponse.redirect(`${base}/auth/error?${errorSearch.toString()}`)
+    }
   }
 
   const errorSearch = new URLSearchParams()

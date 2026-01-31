@@ -43,10 +43,10 @@ export default async function Page({
                   Supabase Dashboard → <a href="https://supabase.com/dashboard/project/_/auth/url-configuration" className="underline" target="_blank" rel="noopener noreferrer">Auth → URL Configuration</a> → Redirect URLs.
                 </li>
                 <li>
-                  Add <code className="rounded bg-muted px-1">https://YOUR-PRODUCTION-DOMAIN/auth/callback</code> (and optionally <code className="rounded bg-muted px-1">/auth/oauth</code>) exactly as your app uses them. Set Site URL to your production origin (e.g. <code className="rounded bg-muted px-1">https://YOUR-PRODUCTION-DOMAIN</code>).
+                  Add <code className="rounded bg-muted px-1">https://muzik.moodmnky.com/auth/callback</code> (and optionally <code className="rounded bg-muted px-1">https://muzik.moodmnky.com/auth/oauth</code>) to Redirect URLs. Set <strong>Site URL</strong> to <code className="rounded bg-muted px-1">https://muzik.moodmnky.com</code>.
                 </li>
                 <li>
-                  Set <code className="rounded bg-muted px-1">NEXT_PUBLIC_SITE_URL</code> in production env to that same URL so auth redirects go to the right place.
+                  Set <code className="rounded bg-muted px-1">NEXT_PUBLIC_SITE_URL</code> in production (e.g. Vercel) to <code className="rounded bg-muted px-1">https://muzik.moodmnky.com</code> so auth redirects go to the right place.
                 </li>
               </ul>
               <p className="text-sm text-muted-foreground">

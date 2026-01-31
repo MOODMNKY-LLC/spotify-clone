@@ -10,6 +10,7 @@ import { ModalProvider } from '@/providers/ModalProvider';
 import { ToasterProvider } from '@/providers/ToasterProvider';
 import { PWAProvider } from '@/providers/PWAProvider';
 import { PWAInstallBanner } from '@/components/PWAInstallBanner';
+import { AuthHashErrorHandler } from '@/components/AuthHashErrorHandler';
 
 import { getSongsByUserId } from '@/actions/getSongsByUserId';
 import { Player } from '@/components/Player';
@@ -96,6 +97,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="theme-color" content="#10b981" />
       </head>
       <body className="font-figtree">
+        <AuthHashErrorHandler />
         <ToasterProvider />
         <PWAProvider>
           <SupabaseProvider>
