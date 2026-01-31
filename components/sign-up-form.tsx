@@ -44,7 +44,7 @@ export function SignUpForm({ className, embedded, onSwitchToLogin, ...props }: S
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'spotify',
         options: {
-          redirectTo: `${window.location.origin}/auth/oauth?next=/`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/`,
           scopes: SPOTIFY_SCOPES,
         },
       })

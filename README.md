@@ -53,6 +53,11 @@ pnpm dev
 
 Other commands: `pnpm build`, `pnpm start`, `pnpm lint`.
 
+### Environment variables
+
+- **Local:** Copy `.env.example` to `.env.local` and fill in values (Supabase, Stripe, Spotify, Navidrome, etc.).
+- **Production (Vercel):** Use the checklist in [docs/ENV_VERCEL.md](docs/ENV_VERCEL.md) to set the same variables in Vercel → Project → Settings → Environment Variables.
+
 ### Stripe subscription setup
 
 1. Add Stripe keys to `.env.local` (from [Stripe Dashboard](https://dashboard.stripe.com/apikeys)).

@@ -100,7 +100,7 @@ export const AccountContent = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'spotify',
         options: {
-          redirectTo: `${window.location.origin}/auth/oauth?next=/account`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/account`,
           scopes: SPOTIFY_SCOPES,
         },
       });

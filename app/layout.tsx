@@ -15,14 +15,42 @@ import { getSongsByUserId } from '@/actions/getSongsByUserId';
 import { Player } from '@/components/Player';
 import { getActiveProductsWithPrices } from '@/actions/getActiveProductsWithPrices';
 import { QueueDrawerWrapper } from '@/components/QueueDrawerWrapper';
+import { getBaseUrl } from '@/lib/metadata';
 
-//* Describe the web app
+const title = 'MNKY MUZIK';
+const description = 'A self-hosted, Spotify-style music experience.';
+
+const baseUrl = getBaseUrl();
+const ogImageUrl = baseUrl ? `${baseUrl}/opengraph-image` : '/opengraph-image';
+
+//* Describe the web app (title, description, Open Graph, Twitter Cards for link previews)
 export const metadata = {
-  title: 'MNKY MUZIK',
-  description: 'Scents the mood.',
+  title,
+  description,
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
+  },
+  openGraph: {
+    type: 'website' as const,
+    title,
+    description,
+    url: baseUrl ?? undefined,
+    siteName: 'MNKY MUZIK',
+    images: [
+      {
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: 'MNKY MUZIK',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image' as const,
+    title,
+    description,
+    images: [ogImageUrl],
   },
 };
 

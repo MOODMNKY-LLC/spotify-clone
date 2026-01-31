@@ -22,6 +22,17 @@ This app uses Spotify as an OAuth provider alongside email/password. The same Sp
 
 In Supabase Dashboard → Authentication → Providers → Spotify: enable Spotify and enter Client ID and Client Secret. The callback URL shown there must be added to your Spotify app’s Redirect URIs.
 
+## Production: Supabase redirect URLs
+
+In **production**, users can see “error after authenticating” if the app’s callback URL is not allowed in Supabase:
+
+1. Supabase Dashboard → [Auth → URL Configuration](https://supabase.com/dashboard/project/_/auth/url-configuration).
+2. Set **Site URL** to your production origin (e.g. `https://muzik.example.com`).
+3. Under **Redirect URLs**, add exactly:
+   - `https://YOUR-PRODUCTION-DOMAIN/auth/callback`
+   (and optionally `https://YOUR-PRODUCTION-DOMAIN/auth/oauth`).
+4. Set `NEXT_PUBLIC_SITE_URL` in production env to that same origin so post-login redirects use the correct URL.
+
 ## Token expiry and refresh
 
 Spotify access tokens expire (typically after 1 hour). Supabase does **not** refresh provider tokens; when Supabase refreshes its own session via `getUser()`, it sets `provider_token` to null. To avoid this:

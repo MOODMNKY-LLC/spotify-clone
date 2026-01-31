@@ -68,7 +68,7 @@ export function HomeSpotifySection() {
     supabase.auth.signInWithOAuth({
       provider: 'spotify',
       options: {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/oauth?next=/`,
+        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?next=/`,
         scopes: SPOTIFY_SCOPES,
       },
     }).finally(() => setReconnecting(false));

@@ -59,7 +59,7 @@ export function useSpotifyPlayer(enabled: boolean) {
         if (!SpotifyPlayer) throw new Error('Spotify SDK not loaded');
 
         const p = new SpotifyPlayer({
-          name: 'MNKY Muzik Web Player',
+          name: 'MNKY MUZIK Web Player',
           getOAuthToken: (cb) => {
             getToken().then(cb).catch(() => cb(''));
           },

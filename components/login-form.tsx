@@ -73,7 +73,7 @@ export function LoginForm({ className, onSuccess, embedded, onSwitchToSignUp, ..
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'spotify',
         options: {
-          redirectTo: `${window.location.origin}/auth/oauth?next=/`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/`,
           scopes:
             'user-read-email user-read-private user-library-read user-read-playback-state user-read-currently-playing user-modify-playback-state playlist-read-private playlist-read-collaborative user-top-read user-read-recently-played',
         },

@@ -1,8 +1,8 @@
-# Product Requirements Document: MNKY Muzik
+# Product Requirements Document: MNKY MUZIK
 
 ## Overview and objectives
 
-MNKY Muzik is a PWA that combines a local/self-hosted music stack (Navidrome, Lidarr) with optional Spotify integration and AI-powered discovery. Users can:
+MNKY MUZIK is a PWA that combines a local/self-hosted music stack (Navidrome, Lidarr) with optional Spotify integration and AI-powered discovery. Users can:
 
 - Stream and manage music from Navidrome and uploaded songs (Supabase).
 - Connect Spotify to see playlists, saved tracks, and recommendations on the home page and in account.
