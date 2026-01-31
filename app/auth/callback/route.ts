@@ -1,4 +1,5 @@
 import { getSiteOrigin } from '@/lib/metadata'
+import { supabaseAdmin } from '@/libs/supabaseAdmin'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -59,11 +60,10 @@ export async function GET(request: Request) {
     if (!error && data?.session) {
       const s = data.session as { provider_token?: string; provider_refresh_token?: string }
       if (s?.provider_token && s?.provider_refresh_token && data.session.user?.id) {
-        // Use the same supabase instance (has session) so RLS allows the insert.
-        // saveSpotifyTokens() creates a new client that reads request cookies; those
-        // don't have the new session yet (we only set it on redirectRes), so RLS would block.
+        // Use service role so the upsert always succeeds (no RLS/cookie dependency).
+        // We have the user_id and tokens from the session; this is the only write.
         const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString()
-        const { error: upsertError } = await supabase.from('user_spotify_tokens').upsert(
+        const { error: upsertError } = await supabaseAdmin.from('user_spotify_tokens').upsert(
           {
             user_id: data.session.user.id,
             access_token: s.provider_token,
