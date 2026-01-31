@@ -1,5 +1,4 @@
 import { getSiteOrigin } from '@/lib/metadata'
-import { saveSpotifyTokens } from '@/libs/spotifyTokens'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -60,14 +59,22 @@ export async function GET(request: Request) {
     if (!error && data?.session) {
       const s = data.session as { provider_token?: string; provider_refresh_token?: string }
       if (s?.provider_token && s?.provider_refresh_token && data.session.user?.id) {
-        try {
-          await saveSpotifyTokens(
-            data.session.user.id,
-            s.provider_token,
-            s.provider_refresh_token
-          )
-        } catch (err) {
-          console.error('[auth/callback] Failed to save Spotify tokens to DB:', (err as Error)?.message ?? err)
+        // Use the same supabase instance (has session) so RLS allows the insert.
+        // saveSpotifyTokens() creates a new client that reads request cookies; those
+        // don't have the new session yet (we only set it on redirectRes), so RLS would block.
+        const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString()
+        const { error: upsertError } = await supabase.from('user_spotify_tokens').upsert(
+          {
+            user_id: data.session.user.id,
+            access_token: s.provider_token,
+            refresh_token: s.provider_refresh_token,
+            expires_at: expiresAt,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        )
+        if (upsertError) {
+          console.error('[auth/callback] Failed to save Spotify tokens:', upsertError.message)
         }
       }
       return redirectRes
