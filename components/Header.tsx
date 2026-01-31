@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from './Button';
 import { CurrentUserAvatar } from './current-user-avatar';
 
@@ -36,6 +37,11 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
   const supabaseClient = useSupabaseClient();
   const { user } = useUser();
   const player = usePlayer();
+
+  //* Avoid hydration mismatch: auth state can differ between server and client. Render
+  //* a consistent placeholder until mounted, then show real auth UI.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   //* Define logout handler (fallback to local-only signOut if server request fails, e.g. "Failed to fetch")
   const handleLogout = async () => {
@@ -133,7 +139,27 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
           </button>
         </div>
         <div className="flex justify-between items-center gap-x-4">
-          {user ? (
+          {!mounted ? (
+            /* Placeholder matches unauthenticated UI so server and client first paint match (avoids hydration mismatch). */
+            <>
+              <div>
+                <Button
+                  onClick={() => authModal.onOpen('login')}
+                  className="bg-emerald-500 hover:bg-emerald-400 px-6 py-2 text-black"
+                >
+                  Log in
+                </Button>
+              </div>
+              <div>
+                <Button
+                  onClick={() => authModal.onOpen('sign-up')}
+                  className="bg-white px-6 py-2 text-black"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            </>
+          ) : user ? (
             <div className="flex gap-x-4 items-center">
               <Button onClick={handleLogout} className="bg-white px-6 py-2">
                 Logout

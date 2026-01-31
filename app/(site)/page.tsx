@@ -18,14 +18,26 @@ import { HomeSpotifySection } from './components/HomeSpotifySection';
 export const revalidate = 0;
 
 export default async function Home() {
-  const [songs, likedTracks, navidromeAlbums, navidromeRecentAlbums, navidromeRandomSongs] =
-    await Promise.all([
-      getSongs(),
-      getLikedTracks(),
-      isNavidromeConfigured() ? getNavidromeAlbumList('newest', 12) : Promise.resolve([]),
-      isNavidromeConfigured() ? getNavidromeAlbumList('recent', 6) : Promise.resolve([]),
-      isNavidromeConfigured() ? getNavidromeRandomSongs(10) : Promise.resolve([]),
-    ]);
+  let songs: Awaited<ReturnType<typeof getSongs>> = [];
+  let likedTracks: Awaited<ReturnType<typeof getLikedTracks>> = [];
+  let navidromeAlbums: Awaited<ReturnType<typeof getNavidromeAlbumList>> = [];
+  let navidromeRecentAlbums: Awaited<ReturnType<typeof getNavidromeAlbumList>> = [];
+  let navidromeRandomSongs: Awaited<ReturnType<typeof getNavidromeRandomSongs>> = [];
+
+  try {
+    [songs, likedTracks, navidromeAlbums, navidromeRecentAlbums, navidromeRandomSongs] =
+      await Promise.all([
+        getSongs(),
+        getLikedTracks(),
+        isNavidromeConfigured() ? getNavidromeAlbumList('newest', 12) : Promise.resolve([]),
+        isNavidromeConfigured() ? getNavidromeAlbumList('recent', 6) : Promise.resolve([]),
+        isNavidromeConfigured() ? getNavidromeRandomSongs(10) : Promise.resolve([]),
+      ]);
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Home] Data fetch failed, rendering with empty data:', (e as Error)?.message ?? e);
+    }
+  }
 
   return (
     <div className="bg-neutral-900 rounded-lg w-full">
