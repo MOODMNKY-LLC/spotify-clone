@@ -24,6 +24,18 @@ html, body, :root {
   }
 }
 
+/* Mobile: extra padding for bottom nav (56px) + player (80px) */
+@media (max-width: 767px) {
+  .pb-player-safe {
+    padding-bottom: 136px;
+  }
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .pb-player-safe {
+      padding-bottom: calc(136px + env(safe-area-inset-bottom));
+    }
+  }
+}
+
 
 
 @layer base {

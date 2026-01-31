@@ -11,6 +11,7 @@ import { ToasterProvider } from '@/providers/ToasterProvider';
 import { PWAProvider } from '@/providers/PWAProvider';
 import { PWAInstallBanner } from '@/components/PWAInstallBanner';
 import { AuthHashErrorHandler } from '@/components/AuthHashErrorHandler';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 
 import { getSongsByUserId } from '@/actions/getSongsByUserId';
 import { Player } from '@/components/Player';
@@ -104,6 +105,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <UserProvider>
               <ModalProvider products={products} />
               <Sidebar songs={userSongs}>{children}</Sidebar>
+              <MobileBottomNav />
               <Player />
               <QueueDrawerWrapper />
             </UserProvider>

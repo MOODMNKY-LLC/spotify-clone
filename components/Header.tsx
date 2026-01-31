@@ -43,8 +43,12 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  //* Define logout handler (fallback to local-only signOut if server request fails, e.g. "Failed to fetch")
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  //* Logout: clear client state, then hit server sign-out so session cookies are cleared and we redirect to /
   const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
     try {
       const { error } = await supabaseClient.auth.signOut();
       if (error) {
@@ -54,8 +58,10 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
       await supabaseClient.auth.signOut({ scope: 'local' });
     }
     player.reset();
-    router.refresh();
     toast.success('Logged out!');
+    // Server route clears session cookies and redirects so UI updates reliably
+    router.push('/auth/signout');
+    setIsLoggingOut(false);
   };
 
   const isHome = variant === 'home';
@@ -161,8 +167,8 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
             </>
           ) : user ? (
             <div className="flex gap-x-4 items-center">
-              <Button onClick={handleLogout} className="bg-white px-6 py-2">
-                Logout
+              <Button onClick={handleLogout} className="bg-white px-6 py-2" disabled={isLoggingOut}>
+                {isLoggingOut ? 'Logging out…' : 'Logout'}
               </Button>
               <Link href="/account" className="flex items-center">
                 <CurrentUserAvatar />

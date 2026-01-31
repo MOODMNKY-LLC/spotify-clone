@@ -15,6 +15,9 @@ declare global {
         disconnect: () => void;
         addListener: (event: string, cb: (o?: unknown) => void) => void;
         removeListener: (event: string) => void;
+        getCurrentState: () => Promise<{ position: number; duration: number; paused: boolean } | null>;
+        togglePlay: () => Promise<void>;
+        seek: (position_ms: number) => Promise<void>;
         _options: { getOAuthToken: (cb: (token: string) => void) => void };
       };
     };
@@ -25,6 +28,11 @@ export function useSpotifyPlayer(enabled: boolean) {
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [playbackState, setPlaybackState] = useState<{
+    positionMs: number;
+    durationMs: number;
+    isPaused: boolean;
+  }>({ positionMs: 0, durationMs: 0, isPaused: true });
   const playerRef = useRef<InstanceType<NonNullable<typeof window.Spotify>['Player']> | null>(null);
 
   const getToken = useCallback(async (): Promise<string> => {
@@ -97,6 +105,49 @@ export function useSpotifyPlayer(enabled: boolean) {
     };
   }, [enabled, getToken]);
 
+  useEffect(() => {
+    if (!isReady || !playerRef.current) return;
+    const player = playerRef.current;
+    const poll = async () => {
+      try {
+        const state = await player.getCurrentState();
+        if (state) {
+          setPlaybackState({
+            positionMs: state.position,
+            durationMs: state.duration,
+            isPaused: state.paused,
+          });
+        }
+      } catch {
+        // ignore
+      }
+    };
+    poll();
+    const interval = setInterval(poll, 500);
+    return () => clearInterval(interval);
+  }, [isReady]);
+
+  const togglePlay = useCallback(async () => {
+    if (playerRef.current) {
+      try {
+        await playerRef.current.togglePlay();
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  const seek = useCallback(async (positionMs: number) => {
+    if (playerRef.current) {
+      try {
+        await playerRef.current.seek(positionMs);
+        setPlaybackState((prev) => ({ ...prev, positionMs }));
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
   const play = useCallback(
     async (uris: string[]) => {
       if (!deviceId || uris.length === 0) return;
@@ -114,5 +165,13 @@ export function useSpotifyPlayer(enabled: boolean) {
     [deviceId]
   );
 
-  return { deviceId, isReady, error, play };
+  return {
+    deviceId,
+    isReady,
+    error,
+    play,
+    playbackState,
+    togglePlay,
+    seek,
+  };
 }

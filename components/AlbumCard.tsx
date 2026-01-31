@@ -33,10 +33,11 @@ export function AlbumCard({ album }: AlbumCardProps) {
           hover:bg-neutral-400/10
           transition
           p-3
-          rounded-lg
+          rounded-xl
+          min-h-[44px]
         "
       >
-        <div className="relative aspect-square w-full rounded-md overflow-hidden">
+        <div className="relative aspect-square w-full rounded-lg overflow-hidden">
           <CoverImage
             loading="lazy"
             className="object-cover"
