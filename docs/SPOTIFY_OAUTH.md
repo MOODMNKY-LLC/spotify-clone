@@ -57,11 +57,11 @@ In production, the "From Spotify" section (playlists, saved tracks, recommendati
 
 2. **Token persistence**: Supabase refreshes the session on page loads (via the proxy’s `updateSession`), which clears `provider_token`. The app persists Spotify tokens in `user_spotify_tokens` during the callback using the **service role** client so the insert always succeeds (no RLS/cookie dependency). Ensure:
    - The `user_spotify_tokens` migration has been applied in your production Supabase project.
-   - **`SUPABASE_SERVICE_ROLE_KEY`** is set in production (callback uses it to write tokens; without it the insert fails and "From Spotify" stays empty).
+   - **`SUPABASE_SERVICE_ROLE_KEY`** is set in your **production** environment (e.g. Vercel → Project → Settings → Environment Variables). If it is missing or still the placeholder, the callback logs `[auth/callback] SUPABASE_SERVICE_ROLE_KEY is missing or placeholder in production` and does not write tokens, so `/api/spotify/user/recommendations` and other Spotify user APIs return 401.
    - If the callback fails to save tokens, check server logs for `[auth/callback] Failed to save Spotify tokens`.
 
 3. **Redirect URLs**: In Supabase Dashboard → Auth → URL Configuration, add your production callback under Redirect URLs (e.g. `https://your-domain.com/auth/callback`). The Site URL should match your production origin.
 
-4. **API routes and cookies**: The client calls `/api/spotify/user/linked` with `credentials: 'include'` so cookies are sent. If "From Spotify" is empty in production, confirm the session cookie is present and sent on same-origin API requests (e.g. in DevTools → Application → Cookies).
+4. **API routes and cookies**: Session cookies are set with `path: '/'` in the callback so they are sent to all same-origin requests including `/api/*`. The client calls `/api/spotify/user/linked` and other Spotify user APIs with `credentials: 'include'`. If you see 401 on `/api/spotify/user/recommendations` in production, check the response body: `code: 'NO_SESSION'` means the session cookie was not sent or is invalid; `code: 'NO_SPOTIFY_TOKENS'` means the user is signed in but tokens were never saved (fix by setting `SUPABASE_SERVICE_ROLE_KEY` and signing in with Spotify again).
 
 5. **Linked check retries**: After redirect, the client may get a refreshed session without `provider_token`. The app then checks the DB via `/api/spotify/user/linked` and retries a few times (0 ms, 400 ms, 1200 ms) to handle brief DB/cookie propagation delay. If it still shows as not linked, ensure the callback successfully wrote to `user_spotify_tokens` (see point 2).

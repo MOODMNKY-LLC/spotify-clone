@@ -47,6 +47,7 @@ export async function GET(request: Request) {
             cookiesToSet.forEach(({ name, value, options }) => {
               const opts = {
                 ...(typeof options === 'object' && options !== null ? (options as Record<string, unknown>) : {}),
+                path: '/' as const,
                 sameSite: 'lax' as const,
                 ...(isSecure && { secure: true }),
               }
@@ -60,21 +61,29 @@ export async function GET(request: Request) {
     if (!error && data?.session) {
       const s = data.session as { provider_token?: string; provider_refresh_token?: string }
       if (s?.provider_token && s?.provider_refresh_token && data.session.user?.id) {
-        // Use service role so the upsert always succeeds (no RLS/cookie dependency).
-        // We have the user_id and tokens from the session; this is the only write.
-        const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString()
-        const { error: upsertError } = await supabaseAdmin.from('user_spotify_tokens').upsert(
-          {
-            user_id: data.session.user.id,
-            access_token: s.provider_token,
-            refresh_token: s.provider_refresh_token,
-            expires_at: expiresAt,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id' }
-        )
-        if (upsertError) {
-          console.error('[auth/callback] Failed to save Spotify tokens:', upsertError.message)
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+        const isProd = process.env.NODE_ENV === 'production'
+        if (isProd && (!serviceRoleKey || serviceRoleKey === 'placeholder-service-role-key')) {
+          console.error(
+            '[auth/callback] SUPABASE_SERVICE_ROLE_KEY is missing or placeholder in production. ' +
+              'Spotify tokens cannot be saved; set it in your production env (e.g. Vercel) so "From Spotify" works.'
+          )
+        } else {
+          // Use service role so the upsert always succeeds (no RLS/cookie dependency).
+          const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString()
+          const { error: upsertError } = await supabaseAdmin.from('user_spotify_tokens').upsert(
+            {
+              user_id: data.session.user.id,
+              access_token: s.provider_token,
+              refresh_token: s.provider_refresh_token,
+              expires_at: expiresAt,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id' }
+          )
+          if (upsertError) {
+            console.error('[auth/callback] Failed to save Spotify tokens:', upsertError.message)
+          }
         }
       }
       return redirectRes

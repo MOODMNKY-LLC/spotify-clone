@@ -37,18 +37,32 @@ export async function saveSpotifyTokens(
   );
 }
 
+export type GetSpotifyTokensResult =
+  | { ok: true; accessToken: string; refreshToken: string; userId: string }
+  | { ok: false; reason: 'no_user' }
+  | { ok: false; reason: 'no_tokens' };
+
 /**
  * Get Spotify tokens for the current user. Tries DB first, then session.
- * Returns null if no tokens available.
+ * Returns result with ok: true and tokens, or ok: false with reason for 401 diagnostics.
  */
 export async function getSpotifyTokensForCurrentUser(): Promise<{
   accessToken: string;
   refreshToken: string;
   userId: string;
 } | null> {
+  const result = await getSpotifyTokensForCurrentUserWithReason();
+  return result.ok ? { accessToken: result.accessToken, refreshToken: result.refreshToken, userId: result.userId } : null;
+}
+
+/**
+ * Same as getSpotifyTokensForCurrentUser but returns reason when no tokens (no_user vs no_tokens)
+ * so API routes can return a specific 401 code for production debugging.
+ */
+export async function getSpotifyTokensForCurrentUserWithReason(): Promise<GetSpotifyTokensResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user?.id) return null;
+  if (!user?.id) return { ok: false, reason: 'no_user' };
 
   const userId = user.id;
   const { data: { session } } = await supabase.auth.getSession();
@@ -63,6 +77,7 @@ export async function getSpotifyTokensForCurrentUser(): Promise<{
 
   if (row?.access_token && row?.refresh_token) {
     return {
+      ok: true,
       accessToken: row.access_token,
       refreshToken: row.refresh_token,
       userId,
@@ -72,13 +87,14 @@ export async function getSpotifyTokensForCurrentUser(): Promise<{
   // Fallback to session
   if (s?.provider_token && s?.provider_refresh_token) {
     return {
+      ok: true,
       accessToken: s.provider_token,
       refreshToken: s.provider_refresh_token,
       userId,
     };
   }
 
-  return null;
+  return { ok: false, reason: 'no_tokens' };
 }
 
 /**

@@ -5,18 +5,28 @@ import {
   getRecentlyPlayed,
   refreshSpotifyToken,
 } from '@/libs/spotifyWithToken';
-import { getSpotifyTokensForCurrentUser, saveSpotifyTokens } from '@/libs/spotifyTokens';
+import { getSpotifyTokensForCurrentUserWithReason, saveSpotifyTokens } from '@/libs/spotifyTokens';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  const tokens = await getSpotifyTokensForCurrentUser();
-  if (!tokens) {
+  const result = await getSpotifyTokensForCurrentUserWithReason();
+  if (!result.ok) {
+    if (result.reason === 'no_tokens') {
+      console.warn(
+        '[api/spotify/user/recommendations] Session exists but no Spotify tokens (DB or session). ' +
+          'In production, ensure SUPABASE_SERVICE_ROLE_KEY is set so the OAuth callback can save tokens.'
+      );
+    }
     return NextResponse.json(
-      { error: 'Sign in with Spotify for recommendations' },
+      {
+        error: 'Sign in with Spotify for recommendations',
+        code: result.reason === 'no_user' ? 'NO_SESSION' : 'NO_SPOTIFY_TOKENS',
+      },
       { status: 401 }
     );
   }
+  const tokens = { accessToken: result.accessToken, refreshToken: result.refreshToken, userId: result.userId };
 
   const tryWithToken = async (token: string) => {
     let seedArtists = '';
