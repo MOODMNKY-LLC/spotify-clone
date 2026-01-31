@@ -19,6 +19,42 @@ This app uses Spotify as an OAuth provider alongside email/password. The same Sp
    - **Hosted Supabase**: get the exact URL from [Supabase Dashboard](https://supabase.com/dashboard) → your project → Authentication → Providers → Spotify → Copy callback URL (e.g. `https://<project-ref>.supabase.co/auth/v1/callback`).
 3. Save.
 
+## User Access Restrictions (CRITICAL)
+
+**New Spotify apps start in Development Mode**, which restricts OAuth login to:
+- The app owner/developer (you)
+- Up to 25 users you explicitly invite
+
+**If other users cannot log in with Spotify**, this is likely because your app is in Development Mode and they haven't been invited.
+
+### Development Mode: Inviting Users (Up to 25)
+
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) → your app
+2. Navigate to **Settings → Users and Access**
+3. Click **"Add User"** and enter their Spotify email addresses
+4. Users will receive an invitation email and can then log in
+
+### Extended Quota Mode: Unlimited Users
+
+To allow unlimited users to log in, you must submit a **Quota Extension Request**:
+
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) → your app
+2. Navigate to **Settings → Extension Request**
+3. Fill out the Quota Extension form with:
+   - Application information and screenshots
+   - APIs/SDKs used
+   - Justification for OAuth scopes
+   - Security/privacy compliance details
+   - Demo/testing instructions
+4. **Review time**: Approximately 6 weeks (may require back-and-forth)
+
+**Important (as of May 15, 2025)**: Spotify updated extended access criteria. Extended access is now reserved for apps with:
+- Established, scalable, and impactful use cases
+- Alignment with Spotify's platform strategy
+- Focus on artist and creator discovery
+
+See [Spotify's Quota Extension documentation](https://developer.spotify.com/documentation/web-api/concepts/quota-modes) for details.
+
 ## Environment variables
 
 ### Required for Spotify OAuth
