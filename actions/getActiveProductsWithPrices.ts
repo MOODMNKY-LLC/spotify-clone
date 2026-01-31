@@ -2,19 +2,21 @@ import { ProductWithPrice } from '@/types';
 import { createClient } from '@/lib/supabase/server';
 
 export const getActiveProductsWithPrices = async (): Promise<ProductWithPrice[]> => {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from('products')
-    .select('*, prices(*)')
-    .eq('active', true)
-    .eq('prices.active', true)
-    .order('metadata->index')
-    .order('unit_amount', { foreignTable: 'prices' });
+    const { data, error } = await supabase
+      .from('products')
+      .select('*, prices(*)')
+      .eq('active', true)
+      .eq('prices.active', true)
+      .order('metadata->index')
+      .order('unit_amount', { foreignTable: 'prices' });
 
-  if (error) {
-    console.log(error);
+    if (error) return [];
+    return (data as ProductWithPrice[]) || [];
+  } catch {
+    // Supabase unreachable (e.g. ECONNREFUSED)
+    return [];
   }
-
-  return (data as ProductWithPrice[]) || [];
 };

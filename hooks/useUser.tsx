@@ -34,17 +34,29 @@ export const MyUserContextProvider = (props: Props) => {
   const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    const initAuth = async () => {
+      const { data: { session: s } } = await supabase.auth.getSession();
       setSession(s);
-      setUser(s?.user ?? null);
+      if (s) {
+        const { data: { user: u } } = await supabase.auth.getUser();
+        setUser(u ?? null);
+      } else {
+        setUser(null);
+      }
       setIsLoadingUser(false);
-    });
+    };
+    initAuth();
 
     const {
       data: { subscription: sub },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
+    } = supabase.auth.onAuthStateChange(async (_event, s) => {
       setSession(s);
-      setUser(s?.user ?? null);
+      if (s) {
+        const { data: { user: u } } = await supabase.auth.getUser();
+        setUser(u ?? null);
+      } else {
+        setUser(null);
+      }
     });
 
     return () => {

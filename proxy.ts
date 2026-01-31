@@ -15,7 +15,18 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {
     return NextResponse.next({ request });
   }
-  return await updateSession(request);
+  try {
+    return await updateSession(request);
+  } catch (e) {
+    // Supabase unreachable (e.g. not running, or dev server in isolated env)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(
+        '[proxy] Supabase unreachable. Start with: supabase start. Skipping session refresh.',
+        (e as Error)?.message ?? e
+      );
+    }
+    return NextResponse.next({ request });
+  }
 }
 
 export const config = {

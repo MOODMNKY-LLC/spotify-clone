@@ -9,7 +9,7 @@ This app uses Spotify as an OAuth provider alongside email/password. The same Sp
 
 1. Open [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) → your app → Edit Settings.
 2. Under **Redirect URIs**, add:
-   - **Local Supabase**: `http://127.0.0.1:54321/auth/v1/callback`
+   - **Local Supabase**: `http://127.0.0.1:54406/auth/v1/callback` (match api port in supabase/config.toml)
    - **Hosted Supabase**: get the exact URL from [Supabase Dashboard](https://supabase.com/dashboard) → your project → Authentication → Providers → Spotify → Copy callback URL (e.g. `https://<project-ref>.supabase.co/auth/v1/callback`).
 3. Save.
 

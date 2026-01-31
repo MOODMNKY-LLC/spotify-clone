@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { cn, AUTH_INPUT_CLASS } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +15,12 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useState } from 'react'
 
-export function ForgotPasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+interface ForgotPasswordFormProps extends React.ComponentPropsWithoutRef<'div'> {
+  /** When true, render only form content (no card/header) for use inside a single card layout */
+  embedded?: boolean
+}
+
+export function ForgotPasswordForm({ className, embedded, ...props }: ForgotPasswordFormProps) {
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -41,56 +46,72 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
     }
   }
 
+  const formContent = success ? (
+    <p className="text-sm text-neutral-400">
+      If you registered using your email and password, you will receive a password reset email.
+    </p>
+  ) : (
+    <form onSubmit={handleForgotPassword} noValidate>
+      <div className="flex flex-col gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="forgot-email" className="text-neutral-300">Email</Label>
+          <Input
+            id="forgot-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={AUTH_INPUT_CLASS}
+          />
+        </div>
+        {error && <p className="text-sm text-red-400" role="alert">{error}</p>}
+        <Button
+          type="submit"
+          className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-medium"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Sending...' : 'Send reset email'}
+        </Button>
+      </div>
+      <div className="mt-4 text-center text-sm text-neutral-400">
+        Already have an account?{' '}
+        <Link href="/auth/login" className="font-medium text-emerald-400 hover:text-emerald-300">
+          Log in
+        </Link>
+      </div>
+    </form>
+  )
+
+  if (embedded) {
+    return (
+      <div className={cn('flex flex-col gap-6', className)} {...props}>
+        {formContent}
+      </div>
+    )
+  }
+
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       {success ? (
-        <Card>
+        <Card className="border-neutral-700 bg-neutral-800">
           <CardHeader>
-            <CardTitle className="text-2xl">Check Your Email</CardTitle>
-            <CardDescription>Password reset instructions sent</CardDescription>
+            <CardTitle className="text-2xl text-white">Check Your Email</CardTitle>
+            <CardDescription className="text-neutral-400">Password reset instructions sent</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              If you registered using your email and password, you will receive a password reset
-              email.
-            </p>
-          </CardContent>
+          <CardContent>{formContent}</CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="border-neutral-700 bg-neutral-800">
           <CardHeader>
-            <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl text-white">Reset Your Password</CardTitle>
+            <CardDescription className="text-neutral-400">
               Type in your email and we&apos;ll send you a link to reset your password
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleForgotPassword}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Sending...' : 'Send reset email'}
-                </Button>
-              </div>
-              <div className="mt-4 text-center text-sm">
-                Already have an account?{' '}
-                <Link href="/auth/login" className="underline underline-offset-4">
-                  Login
-                </Link>
-              </div>
-            </form>
-          </CardContent>
+          <CardContent>{formContent}</CardContent>
         </Card>
       )}
     </div>

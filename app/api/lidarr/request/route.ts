@@ -28,8 +28,8 @@ export async function POST(request: Request) {
 
   const getUserId = async () => {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.user?.id ?? null;
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id ?? null;
   };
 
   if (type === 'artist' && artistBody) {

@@ -37,17 +37,19 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
   const { user } = useUser();
   const player = usePlayer();
 
-  //* Define logout handler
+  //* Define logout handler (fallback to local-only signOut if server request fails, e.g. "Failed to fetch")
   const handleLogout = async () => {
-    const { error } = await supabaseClient.auth.signOut();
+    try {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        await supabaseClient.auth.signOut({ scope: 'local' });
+      }
+    } catch {
+      await supabaseClient.auth.signOut({ scope: 'local' });
+    }
     player.reset();
     router.refresh();
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Logged out!');
-    }
+    toast.success('Logged out!');
   };
 
   const isHome = variant === 'home';
@@ -144,15 +146,18 @@ export const Header: React.FC<HeaderProps> = ({ children, className, variant = '
             <>
               <div>
                 <Button
-                  onClick={authModal.onOpen}
-                  className="bg-transparent text-neutral-300 font-medium"
+                  onClick={() => authModal.onOpen('login')}
+                  className="bg-emerald-500 hover:bg-emerald-400 px-6 py-2 text-black"
                 >
-                  Sign Up
+                  Log in
                 </Button>
               </div>
               <div>
-                <Button onClick={authModal.onOpen} className="bg-white px-6 py-2">
-                  Log in
+                <Button
+                  onClick={() => authModal.onOpen('sign-up')}
+                  className="bg-white px-6 py-2 text-black"
+                >
+                  Sign Up
                 </Button>
               </div>
             </>

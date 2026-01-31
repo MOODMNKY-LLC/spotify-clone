@@ -45,7 +45,7 @@ export default async function Page({
                   In <a href="https://developer.spotify.com/dashboard" className="underline" target="_blank" rel="noopener noreferrer">Spotify Developer Dashboard</a>: open your app → Edit Settings → Redirect URIs.
                 </li>
                 <li>
-                  Add <code className="rounded bg-muted px-1">http://127.0.0.1:54321/auth/v1/callback</code> for local Supabase, or use the URL from Supabase Dashboard → Auth → Providers → Spotify for hosted.
+                  Add <code className="rounded bg-muted px-1">http://127.0.0.1:54406/auth/v1/callback</code> for local Supabase (port from supabase/config.toml), or use the URL from Supabase Dashboard → Auth → Providers → Spotify for hosted.
                 </li>
                 <li>
                   Set <code className="rounded bg-muted px-1">SPOTIFY_CLIENT_ID</code> and <code className="rounded bg-muted px-1">SPOTIFY_CLIENT_SECRET</code> in <code className="rounded bg-muted px-1">.env</code> at project root; run <code className="rounded bg-muted px-1">supabase start</code> (or <code className="rounded bg-muted px-1">pnpm run supabase:start</code> if using <code className="rounded bg-muted px-1">.env.local</code>).

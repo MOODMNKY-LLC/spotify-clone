@@ -9,7 +9,14 @@ export function LogoutButton() {
 
   const logout = async () => {
     const supabase = createClient()
-    await supabase.auth.signOut()
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        await supabase.auth.signOut({ scope: 'local' })
+      }
+    } catch {
+      await supabase.auth.signOut({ scope: 'local' })
+    }
     router.push('/auth/login')
   }
 

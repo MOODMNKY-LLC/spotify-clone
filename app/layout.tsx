@@ -36,8 +36,21 @@ export const revalidate = 0;
 
 //* Main layout component for the app
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const userSongs = await getSongsByUserId();
-  const products = await getActiveProductsWithPrices();
+  let userSongs: Awaited<ReturnType<typeof getSongsByUserId>> = [];
+  let products: Awaited<ReturnType<typeof getActiveProductsWithPrices>> = [];
+  try {
+    const [songs, prods] = await Promise.all([getSongsByUserId(), getActiveProductsWithPrices()]);
+    userSongs = songs;
+    products = prods;
+  } catch (e) {
+    // Supabase unreachable (e.g. not running, or dev server in isolated env like Cursor terminal)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(
+        '[layout] Supabase unreachable. Start with: supabase start. Using empty data.',
+        (e as Error)?.message ?? e
+      );
+    }
+  }
 
   //* Providers & Components
   return (

@@ -6,12 +6,12 @@ export const useCurrentUserName = () => {
 
   useEffect(() => {
     const fetchProfileName = async () => {
-      const { data, error } = await createClient().auth.getSession()
+      const { data, error } = await createClient().auth.getUser()
       if (error) {
         console.error(error)
       }
 
-      const user = data.session?.user
+      const user = data.user
       const name =
         user?.user_metadata?.full_name ??
         user?.user_metadata?.name ??

@@ -1,13 +1,19 @@
 import { create } from 'zustand';
 
+export type AuthModalView = 'login' | 'sign-up';
+
 interface AuthModalStore {
   isOpen: boolean;
-  onOpen: () => void;
+  view: AuthModalView;
+  onOpen: (view?: AuthModalView) => void;
   onClose: () => void;
+  setView: (view: AuthModalView) => void;
 }
 
 export const useAuthModal = create<AuthModalStore>((set) => ({
   isOpen: false,
-  onOpen: () => set({ isOpen: true }),
+  view: 'login',
+  onOpen: (view = 'login') => set({ isOpen: true, view }),
   onClose: () => set({ isOpen: false }),
+  setView: (view) => set({ view }),
 }));
