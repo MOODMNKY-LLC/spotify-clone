@@ -71,30 +71,60 @@ export async function GET(request: Request) {
       const accessToken = s?.provider_token
       const refreshToken = s?.provider_refresh_token
       const userId = data.session.user?.id
+      if (!accessToken || !refreshToken) {
+        console.warn(
+          '[auth/callback] Session has no provider_token/provider_refresh_token. ' +
+            'Supabase may not be returning Spotify tokens; check Supabase Dashboard → Auth → Providers → Spotify is enabled and returning tokens.'
+        )
+      }
       if (accessToken && refreshToken && userId) {
         const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
         const isProd = process.env.NODE_ENV === 'production'
-        if (isProd && (!serviceRoleKey || serviceRoleKey === 'placeholder-service-role-key')) {
+        const cannotSaveInProd =
+          isProd && (!serviceRoleKey || serviceRoleKey === 'placeholder-service-role-key')
+
+        if (cannotSaveInProd) {
           console.error(
             '[auth/callback] SUPABASE_SERVICE_ROLE_KEY is missing or placeholder in production. ' +
               'Spotify tokens cannot be saved; set it in your production env (e.g. Vercel) so "From Spotify" works.'
           )
-        } else {
-          // Persist tokens before sending redirect (client must not land on home before DB has row).
-          const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString()
-          const { error: upsertError } = await supabaseAdmin.from('user_spotify_tokens').upsert(
-            {
-              user_id: userId,
-              access_token: accessToken,
-              refresh_token: refreshToken,
-              expires_at: expiresAt,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id' }
+          const errorSearch = new URLSearchParams()
+          errorSearch.set('error_code', 'spotify_tokens_not_saved')
+          errorSearch.set(
+            'error',
+            'Spotify was connected but this server could not save your session. "From Spotify" will stay empty until the server is configured.'
           )
-          if (upsertError) {
-            console.error('[auth/callback] Failed to save Spotify tokens:', upsertError.message)
-          }
+          return NextResponse.redirect(`${base}/auth/error?${errorSearch.toString()}`)
+        }
+
+        // Persist tokens before sending redirect (client must not land on home before DB has row).
+        const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString()
+        const { error: upsertError } = await supabaseAdmin.from('user_spotify_tokens').upsert(
+          {
+            user_id: userId,
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            expires_at: expiresAt,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        )
+        if (upsertError) {
+          console.error(
+            '[auth/callback] Failed to save Spotify tokens:',
+            upsertError.message,
+            (upsertError as { code?: string }).code ?? '',
+            '- Check: table user_spotify_tokens exists in this Supabase project; NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are from the same project.'
+          )
+          const errorSearch = new URLSearchParams()
+          errorSearch.set('error_code', 'spotify_tokens_not_saved')
+          errorSearch.set(
+            'error',
+            'Spotify was connected but saving your session failed. Try again or check server logs.'
+          )
+          return NextResponse.redirect(`${base}/auth/error?${errorSearch.toString()}`)
+        } else {
+          console.info('[auth/callback] Spotify tokens saved successfully for user.')
         }
       }
       return redirectRes

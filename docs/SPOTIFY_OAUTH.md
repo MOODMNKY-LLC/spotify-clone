@@ -67,3 +67,22 @@ In production, the "From Spotify" section (playlists, saved tracks, recommendati
 4. **API routes and cookies**: Session cookies are set with `path: '/'` in the callback so they are sent to all same-origin requests including `/api/*`. The client calls `/api/spotify/user/linked` and other Spotify user APIs with `credentials: 'include'`. If you see 401 on `/api/spotify/user/recommendations` in production, check the response body: `code: 'NO_SESSION'` means the session cookie was not sent or is invalid; `code: 'NO_SPOTIFY_TOKENS'` means the user is signed in but tokens were never saved (fix by setting `SUPABASE_SERVICE_ROLE_KEY` and signing in with Spotify again).
 
 5. **Linked check retries**: After redirect, the client may get a refreshed session without `provider_token`. The app then checks the DB via `/api/spotify/user/linked` and retries a few times (0 ms, 400 ms, 1200 ms) to handle brief DB/cookie propagation delay. If it still shows as not linked, ensure the callback successfully wrote to `user_spotify_tokens` (see point 2).
+
+## When `SUPABASE_SERVICE_ROLE_KEY` is set but 401 persists
+
+If the key is set in production but "From Spotify" still doesn’t load and `/api/spotify/user/recommendations` returns 401, use these checks:
+
+1. **Vercel (or host) logs after "Reconnect Spotify"**
+   - **"Spotify tokens saved successfully"** → Callback wrote to the DB. Then the problem is likely the **session cookie not reaching the API** (see step 3) or a **different Supabase project** (see step 4).
+   - **"Session has no provider_token/provider_refresh_token"** → Supabase is not returning Spotify tokens. In **Supabase Dashboard → Authentication → Providers → Spotify**: ensure Spotify is enabled and that the same Client ID/Secret as in your Spotify app are set. Confirm the Supabase callback URL is in your Spotify app’s Redirect URIs.
+   - **"Failed to save Spotify tokens: ..."** → Upsert failed. Log message includes a hint: ensure **table `user_spotify_tokens` exists** in the **same** Supabase project (run the migration there), and that **`NEXT_PUBLIC_SUPABASE_URL`** and **`SUPABASE_SERVICE_ROLE_KEY`** are from the **same** Supabase project (not dev URL with prod key or vice versa).
+
+2. **401 response body** (Network tab → recommendations request → Response)
+   - **`code: 'NO_SESSION'`** → The request had no valid session (cookie not sent or invalid). Same-origin, cookie path, and redirect URL must match the app origin (e.g. `https://muzik.moodmnky.com`).
+   - **`code: 'NO_SPOTIFY_TOKENS'`** → Session is present but no Spotify tokens in DB or session. So either the callback never saved (check logs above) or the session never had `provider_token` (check Supabase Spotify provider).
+
+3. **Same Supabase project**  
+   `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` must belong to the **same** Supabase project. If the URL is for project A and the key is for project B, the callback’s upsert will fail (wrong key for that URL).
+
+4. **Table in production**  
+   In **Supabase Dashboard → Table Editor**, confirm `user_spotify_tokens` exists. If not, run the migration (e.g. `supabase/migrations/20250130180000_user_spotify_tokens.sql`) on the **production** project (Dashboard → SQL Editor or `supabase db push` against prod).
