@@ -10,9 +10,9 @@ Use this list to ensure your **production** (and optionally Preview/Development)
 
 | Variable | Where to get it | Notes |
 |----------|------------------|--------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Project Settings → API → Project URL | Use **production** project URL. |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Same → Project API keys → `anon` public | Or `NEXT_PUBLIC_SUPABASE_ANON_KEY`. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Same → `service_role` (secret) | Server-only; never expose in client. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Project Settings → API → Project URL | Use **production** project URL. **Must match** the project for `SUPABASE_SERVICE_ROLE_KEY`. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Same → Project API keys → `anon` public | Or `NEXT_PUBLIC_SUPABASE_ANON_KEY`. **Must match** the project for `NEXT_PUBLIC_SUPABASE_URL`. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Same → `service_role` (secret) | **CRITICAL**: Server-only; never expose in client. Required for Spotify OAuth token persistence. If missing in production, authentication succeeds but tokens won't be saved, causing "From Spotify" features to fail. **Must match** the project for `NEXT_PUBLIC_SUPABASE_URL`. |
 | `DATABASE_URL` | Supabase Dashboard → Database → Connection string → URI | Use “Session mode” or “Transaction” pooler if needed. |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard → API keys → Publishable key | Use **live** key for production. |
 | `STRIPE_SECRET_KEY` | Same → Secret key | Use **live** key for production. |
